@@ -20,7 +20,13 @@ func Run(ctx context.Context, args []string) error {
 		Usage: "Read and write Azure Boards work items with first-class Markdown",
 		Flags: globalFlags(),
 		Commands: []*cli.Command{
+			createCmd,
+			updateCmd,
 			showCmd,
+			listCmd,
+			commentCmd,
+			linkCmd,
+			unlinkCmd,
 			configCmd,
 		},
 	}

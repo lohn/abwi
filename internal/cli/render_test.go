@@ -41,6 +41,20 @@ func TestRenderWorkItem(t *testing.T) {
 	}
 }
 
+func TestRenderTable(t *testing.T) {
+	mk := func(id int, typ, state, title string) workitemtracking.WorkItem {
+		f := map[string]any{"System.WorkItemType": typ, "System.State": state, "System.Title": title}
+		return workitemtracking.WorkItem{Id: &id, Fields: &f}
+	}
+	got := renderTable([]workitemtracking.WorkItem{
+		mk(1, "Bug", "Active", "Crash on save"),
+		mk(23, "Task", "New", "Write docs"),
+	})
+	if !strings.Contains(got, "ID") || !strings.Contains(got, "Crash on save") || !strings.Contains(got, "23") {
+		t.Errorf("table output wrong:\n%s", got)
+	}
+}
+
 func TestRenderConfig(t *testing.T) {
 	cfg := &config.Config{
 		Org: "https://dev.azure.com/o", Project: "P", Format: "markdown", Auth: "entra",

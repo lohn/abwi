@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"text/tabwriter"
 
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtracking"
 
@@ -60,6 +61,37 @@ func renderWorkItem(wi *workitemtracking.WorkItem, htmlFields map[string]bool) s
 		}
 	}
 	return b.String()
+}
+
+func renderTable(items []workitemtracking.WorkItem) string {
+	var b strings.Builder
+	// The tabwriter only ever writes into the strings.Builder, so none of
+	// these writes can fail.
+	w := tabwriter.NewWriter(&b, 0, 0, 2, ' ', 0)
+	_, _ = fmt.Fprintln(w, "ID\tTYPE\tSTATE\tTITLE")
+	for _, wi := range items {
+		f := *wi.Fields
+		_, _ = fmt.Fprintf(w, "%d\t%s\t%s\t%s\n", *wi.Id, f["System.WorkItemType"], f["System.State"], f["System.Title"])
+	}
+	_ = w.Flush()
+	return b.String()
+}
+
+func renderComments(comments []ado.Comment) string {
+	var b strings.Builder
+	for i, c := range comments {
+		if i > 0 {
+			b.WriteString("\n---\n\n")
+		}
+		fmt.Fprintf(&b, "[%d] %s (%s)\n\n%s\n", c.ID, c.CreatedBy.DisplayName, c.CreatedDate, c.Text)
+	}
+	return b.String()
+}
+
+// printWorkItemLine prints the one-line result used by create and update.
+func printWorkItemLine(c *ado.Client, wi *workitemtracking.WorkItem) {
+	f := *wi.Fields
+	fmt.Printf("#%d %s\n%s\n", *wi.Id, f["System.Title"], c.WebURL(*wi.Id))
 }
 
 func renderConfig(cfg *config.Config) string {
