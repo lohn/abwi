@@ -1,0 +1,7 @@
+/abwi
+*.test
+*.swp
+*.log
+.DS_Store
+.idea/
+.vscode/

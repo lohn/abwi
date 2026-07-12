@@ -1,0 +1,13 @@
+[tools]
+dprint = "0.54.0"
+go = "1.26.5"
+golangci-lint = "2.12.2"
+"pipx:commitizen" = "4.16.3"
+prek = "0.4.5"
+
+[settings]
+minimum_release_age = "3d"
+lockfile = true
+
+[hooks]
+postinstall = { task = "postinstall" }
