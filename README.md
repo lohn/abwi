@@ -40,9 +40,10 @@ Azure CLI credential automatically:
 az login
 ```
 
-**PAT (explicit opt-in, not recommended).** Set `auth = "pat"` in the config
-file (or pass `--auth pat`) and export the token as `ABWI_PAT` (falling back
-to `AZURE_DEVOPS_EXT_PAT`, the variable the Azure CLI uses):
+**PAT (explicit opt-in, not recommended).** Set `auth = "pat"` in the
+**global** config file (or pass `--auth pat`) and export the token as
+`ABWI_PAT` (falling back to `AZURE_DEVOPS_EXT_PAT`, the variable the Azure
+CLI uses):
 
 ```bash
 export ABWI_PAT=...          # or AZURE_DEVOPS_EXT_PAT
@@ -51,6 +52,10 @@ abwi --auth pat show 123
 
 PAT values are read **only** from environment variables, never from config
 files, so a token can't end up committed by accident.
+
+The `auth` key is honored **only in the global config file** — a checked-out
+repository must not be able to switch your authentication mode, so `auth` in
+a repo-local `.abwi.toml` is ignored with a warning.
 
 ## Configuration
 
@@ -79,8 +84,8 @@ repro = "Microsoft.VSTS.TCM.ReproSteps"
 ```
 
 Available keys: `org`, `project`, `format` (`markdown`/`html`, default
-`markdown`), `auth` (`entra`/`pat`, default `entra`), `default-type`, and the
-`[aliases]` table.
+`markdown`), `auth` (`entra`/`pat`, default `entra`; global config only),
+`default-type`, and the `[aliases]` table.
 
 Run `abwi config` to see the resolved values and where each one came from —
 see [Usage](#usage) below.

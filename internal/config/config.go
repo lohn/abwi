@@ -103,7 +103,14 @@ func (c *Config) applyFile(path, origin string) error {
 	set(&c.Org, fc.Org, "org")
 	set(&c.Project, fc.Project, "project")
 	set(&c.Format, fc.Format, "format")
-	set(&c.Auth, fc.Auth, "auth")
+	// auth is only honored in the global config (or the --auth flag): a
+	// checked-out repository must not be able to switch the auth mode.
+	if fc.Auth != "" && origin == "local" {
+		fmt.Fprintf(os.Stderr,
+			"abwi: warning: ignoring \"auth\" in %s; set it in %s or pass --auth\n", path, c.GlobalPath)
+	} else {
+		set(&c.Auth, fc.Auth, "auth")
+	}
 	set(&c.DefaultType, fc.DefaultType, "default-type")
 	for k, v := range fc.Aliases {
 		c.Aliases[k] = v

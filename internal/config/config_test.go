@@ -102,6 +102,33 @@ func TestEnvOverride(t *testing.T) {
 	}
 }
 
+func TestLocalAuthIgnored(t *testing.T) {
+	clearEnv(t)
+	dir := t.TempDir()
+	write(t, filepath.Join(dir, ".abwi.toml"), "auth = \"pat\"\n")
+	cfg, err := load(dir, filepath.Join(dir, "nope.toml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Auth != "entra" || cfg.Origins["auth"] != "default" {
+		t.Errorf("got auth=%q origin=%q, want the local value ignored (entra/default)", cfg.Auth, cfg.Origins["auth"])
+	}
+}
+
+func TestGlobalAuth(t *testing.T) {
+	clearEnv(t)
+	dir := t.TempDir()
+	global := filepath.Join(dir, "g", "config.toml")
+	write(t, global, "auth = \"pat\"\n")
+	cfg, err := load(dir, global)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Auth != "pat" || cfg.Origins["auth"] != "global" {
+		t.Errorf("got auth=%q origin=%q, want pat/global", cfg.Auth, cfg.Origins["auth"])
+	}
+}
+
 func TestInvalidFormat(t *testing.T) {
 	clearEnv(t)
 	dir := t.TempDir()
