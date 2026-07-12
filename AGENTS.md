@@ -70,6 +70,8 @@ prek run          # against staged files
 - Go code is formatted with **gofumpt + goimports** (local prefix
   `github.com/lohn/abwi`); non-Go files with **dprint**. Let the hooks
   format — don't hand-format.
+- Keep the three READMEs (`README.md`, `README.ja.md`, `README.ko.md`) consistent
+  when changing user-facing behavior.
 - Unit tests live next to the code they cover (`internal/*/*_test.go`); no
   mocking frameworks. Add or update tests for behavior changes.
 - Azure DevOps API notes:

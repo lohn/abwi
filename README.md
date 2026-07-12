@@ -1,5 +1,7 @@
 # abwi
 
+> **English** | [日本語](README.ja.md) | [한국어](README.ko.md)
+
 A CLI for reading and writing Azure Boards work items with first-class
 Markdown support — what `az boards` makes hard, `abwi` makes the default.
 
