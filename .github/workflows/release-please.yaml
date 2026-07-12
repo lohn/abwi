@@ -21,13 +21,27 @@ jobs:
           client-id: ${{ secrets.RELEASE_BOT_CLIENT_ID }}
           private-key: ${{ secrets.RELEASE_BOT_APP_PRIVATE_KEY }}
 
+      # Checkout with the app token so the formatting step below can push the
+      # amended release-PR commit and re-trigger CI on it.
       # https://github.com/marketplace/actions/checkout
       - name: Checkout repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          token: ${{ steps.app-token.outputs.token }}
 
-      # After a release PR is merged the manifest version has no tag yet. Pushing
+      - name: Initialize tools
+        uses: ./.github/actions/init-tools
+        with:
+          cache-key: release-please
+
+      # Tag the release only when this push is the merge of a release PR. Pushing
       # the tag with the app token (not GITHUB_TOKEN) triggers the Release
       # workflow. Only releases are immutable, tags are not, so this is safe.
+      #
+      # release-please labels its release PRs "autorelease: pending". Guarding on
+      # that label ensures ordinary pushes never create a tag — before the first
+      # release PR is merged there is no such PR, so no premature "vnull" /
+      # "v0.1.0" tag is created.
       #
       # release-please normally swaps the merged release PR's label from
       # "autorelease: pending" to "autorelease: tagged" itself when it creates
@@ -36,25 +50,34 @@ jobs:
       # Without doing the swap ourselves, the PR stays "pending" forever and
       # release-please refuses to open any further release PRs ("untagged,
       # merged release PRs outstanding - aborting").
-      - name: Create the release tag if missing
+      - name: Create the release tag if a release PR was merged
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           GH_REPO: ${{ github.repository }}
         # language=bash
         run: |
           set -euo pipefail
+          pr=$(gh api "repos/$GH_REPO/commits/$GITHUB_SHA/pulls" \
+            --jq '.[] | select(any(.labels[]; .name == "autorelease: pending")) | .number' | head -n1)
+          if [ -z "$pr" ]; then
+            echo "no merged release PR at this commit; nothing to tag"
+            exit 0
+          fi
+
           version=$(jq -r '.["."]' .release-please-manifest.json)
+          if [ -z "$version" ] || [ "$version" = "null" ]; then
+            echo "error: release PR #$pr merged but manifest has no version" >&2
+            exit 1
+          fi
+
           tag="v$version"
           if gh api "repos/$GH_REPO/git/ref/tags/$tag" >/dev/null 2>&1; then
             echo "$tag already exists; nothing to do"
           else
             gh api "repos/$GH_REPO/git/refs" -f "ref=refs/tags/$tag" -f "sha=$GITHUB_SHA"
             echo "created $tag"
-            pr=$(gh api "repos/$GH_REPO/commits/$GITHUB_SHA/pulls" --jq '.[0].number // empty')
-            if [ -n "$pr" ]; then
-              gh pr edit "$pr" --remove-label "autorelease: pending" --add-label "autorelease: tagged"
-            fi
           fi
+          gh pr edit "$pr" --remove-label "autorelease: pending" --add-label "autorelease: tagged"
 
       # https://github.com/marketplace/actions/release-please-action
       - name: Run release-please
@@ -65,6 +88,41 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
           skip-github-release: true
+
+      # Reformat the files release-please generated (CHANGELOG.md, version bumps
+      # in JSON/TOML) with dprint so the release PR passes its own formatting
+      # checks and can auto-merge. Amend onto release-please's commit, preserving
+      # its committer identity, and force-push.
+      - name: Format the release pull request
+        if: ${{ steps.rp.outputs.prs_created == 'true' && steps.rp.outputs.prs != '' }}
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_REPO: ${{ github.repository }}
+          PRS: ${{ steps.rp.outputs.prs }}
+        # language=bash
+        run: |
+          set -euo pipefail
+          echo "$PRS" | jq -c '.[]' | while read -r pr; do
+            branch="$(echo "$pr" | jq -r '.headBranchName')"
+
+            git fetch origin "$branch"
+            git switch --force-create "$branch" FETCH_HEAD
+
+            # Keep the amended commit attributed to release-please's committer.
+            GIT_COMMITTER_NAME="$(git show --no-patch --format='%cn' HEAD)"
+            GIT_COMMITTER_EMAIL="$(git show --no-patch --format='%ce' HEAD)"
+            export GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL
+
+            dprint fmt --allow-no-files
+
+            if [ -z "$(git status --porcelain)" ]; then
+              continue
+            fi
+
+            git add --update
+            git commit --amend --no-edit
+            git push --force-with-lease origin "HEAD:$branch"
+          done
 
       - name: Enable auto-merge on the release pull request
         if: ${{ steps.rp.outputs.prs_created == 'true' }}
