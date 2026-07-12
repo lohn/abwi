@@ -1,5 +1,10 @@
 # abwi
 
+[![CI](https://github.com/lohn/abwi/actions/workflows/ci.yaml/badge.svg)](https://github.com/lohn/abwi/actions/workflows/ci.yaml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/lohn/abwi)](https://goreportcard.com/report/github.com/lohn/abwi)
+[![npm](https://img.shields.io/npm/v/@abwi/cli.svg)](https://www.npmjs.com/package/@abwi/cli)
+[![PyPI](https://img.shields.io/pypi/v/abwi.svg)](https://pypi.org/project/abwi/)
+
 > [English](README.md) | **日本語** | [한국어](README.ko.md)
 
 Azure Boards の work item を読み書きするための CLI です。
@@ -24,6 +29,26 @@ Markdown を第一級でサポートしており、`az boards` では難しか�
 > [`--format html` フォールバック](#--format-html-フォールバック)を使ってください。
 
 ## インストール
+
+### npm を使用
+
+```bash
+npm install -g @abwi/cli
+abwi --help
+```
+
+### PyPI を使用
+
+```bash
+pip install abwi
+abwi --help
+```
+
+### GitHub Releases から
+
+[Releases](https://github.com/lohn/abwi/releases) からお使いのプラットフォーム用のバイナリをダウンロードしてください。
+
+### Go を使用
 
 ```bash
 go install github.com/lohn/abwi/cmd/abwi@latest

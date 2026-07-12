@@ -91,13 +91,15 @@ configuration change.
 
 ## Project layout
 
-The implementation is entirely in Go, in `cmd/` and `internal/`.
+The implementation is entirely in Go, in `cmd/` and `internal/`; `npm/` and
+`pypi/` only package and ship the prebuilt binary.
 
 ```
 cmd/abwi/          CLI entry point
 internal/cli/      Command tree, flag parsing, rendering
 internal/config/   TOML config loading/merging with origin tracking
 internal/ado/      Azure DevOps SDK wrapper, JSON Patch building, REST fallback
+npm/, pypi/        Binary-distribution wrappers — no real logic
 ```
 
 See [AGENTS.md](./AGENTS.md) for a more detailed map and architecture notes.

@@ -1,5 +1,10 @@
 # abwi
 
+[![CI](https://github.com/lohn/abwi/actions/workflows/ci.yaml/badge.svg)](https://github.com/lohn/abwi/actions/workflows/ci.yaml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/lohn/abwi)](https://goreportcard.com/report/github.com/lohn/abwi)
+[![npm](https://img.shields.io/npm/v/@abwi/cli.svg)](https://www.npmjs.com/package/@abwi/cli)
+[![PyPI](https://img.shields.io/pypi/v/abwi.svg)](https://pypi.org/project/abwi/)
+
 > [English](README.md) | [日本語](README.ja.md) | **한국어**
 
 Azure Boards work item을 읽고 쓰기 위한 CLI입니다. Markdown을 일급으로 지원하며,
@@ -23,6 +28,26 @@ Azure Boards work item을 읽고 쓰기 위한 CLI입니다. Markdown을 일급�
 > [`--format html` 폴백](#--format-html-폴백)을 사용하세요.
 
 ## 설치
+
+### npm을 통해
+
+```bash
+npm install -g @abwi/cli
+abwi --help
+```
+
+### PyPI를 통해
+
+```bash
+pip install abwi
+abwi --help
+```
+
+### GitHub Releases를 통해
+
+[Releases](https://github.com/lohn/abwi/releases)에서 플랫폼용 바이너리를 다운로드하세요.
+
+### Go를 통해
 
 ```bash
 go install github.com/lohn/abwi/cmd/abwi@latest

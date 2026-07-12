@@ -1,0 +1,281 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions: {}
+
+jobs:
+  goreleaser:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    steps:
+      # https://github.com/marketplace/actions/checkout
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - name: Initialize tools
+        uses: ./.github/actions/init-tools
+        with:
+          cache-key: release
+
+      # https://github.com/marketplace/actions/create-github-app-token
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ secrets.RELEASE_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_APP_PRIVATE_KEY }}
+
+      # Use the section for this version from CHANGELOG.md as the release notes,
+      # so the GitHub Release matches CHANGELOG.md. release-please puts the newest
+      # version first, so extract the body of the first "## " section. Write it
+      # outside the repo so goreleaser does not see a dirty working tree.
+      - name: Extract release notes from CHANGELOG.md
+        # language=bash
+        run: |
+          set -euo pipefail
+          awk '/^## / { n++; if (n >= 2) exit; next } n == 1 { print }' CHANGELOG.md > "$RUNNER_TEMP/release-notes.md"
+          if ! grep -q '[^[:space:]]' "$RUNNER_TEMP/release-notes.md"; then
+            echo "error: no release notes extracted from CHANGELOG.md" >&2
+            exit 1
+          fi
+
+      # goreleaser creates the GitHub release as a draft (see .goreleaser.yaml)
+      # and uploads every artifact, so all assets are present before publish.
+      - name: Build and create the draft release with GoReleaser
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: goreleaser release --clean --release-notes "$RUNNER_TEMP/release-notes.md"
+
+      # https://github.com/marketplace/actions/attest-build-provenance
+      - name: Attest build provenance for all artifacts
+        uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26 # v4.1.0
+        with:
+          subject-checksums: dist/checksums.txt
+
+  npm-publish:
+    needs: goreleaser
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      # https://github.com/marketplace/actions/checkout
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Initialize tools
+        uses: ./.github/actions/init-tools
+        with:
+          cache-key: release
+
+      - name: Download raw binaries from the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        # language=bash
+        run: |
+          gh release download "$TAG" --dir dist-bin \
+            --pattern 'abwi_linux_*' \
+            --pattern 'abwi_darwin_*' \
+            --pattern 'abwi_windows_*'
+
+      - name: Place binaries into platform packages
+        # language=bash
+        run: |
+          set -euo pipefail
+          install -m755 dist-bin/abwi_darwin_arm64      npm/@abwi/cli-darwin-arm64/abwi
+          install -m755 dist-bin/abwi_darwin_amd64      npm/@abwi/cli-darwin-x64/abwi
+          install -m755 dist-bin/abwi_linux_arm64       npm/@abwi/cli-linux-arm64/abwi
+          install -m755 dist-bin/abwi_linux_amd64       npm/@abwi/cli-linux-x64/abwi
+          install -m755 dist-bin/abwi_windows_arm64.exe npm/@abwi/cli-win32-arm64/abwi.exe
+          install -m755 dist-bin/abwi_windows_amd64.exe npm/@abwi/cli-win32-x64/abwi.exe
+
+      - name: Copy README into the meta package
+        uses: ./.github/actions/copy-readme
+        with:
+          dest: npm/@abwi/cli/README.md
+          tag: ${{ github.ref_name }}
+
+      - name: Publish platform packages then the meta package
+        # language=bash
+        run: |
+          set -euo pipefail
+          # Paths are prefixed with ./ so npm treats them as directories rather
+          # than "org/repo" git shorthands. Already-published versions are
+          # skipped as a guard against re-runs.
+          publish() {
+            local dir="$1" spec
+            spec=$(jq -r '.name + "@" + .version' "$dir/package.json")
+            if npm view "$spec" version >/dev/null 2>&1; then
+              echo "skip $spec (already published)"
+            else
+              npm publish --access public "$dir"
+            fi
+          }
+          for d in darwin-arm64 darwin-x64 linux-arm64 linux-x64 win32-arm64 win32-x64; do
+            publish "./npm/@abwi/cli-$d"
+          done
+          publish "./npm/@abwi/cli"
+
+  pypi-publish:
+    needs: goreleaser
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      # https://github.com/marketplace/actions/checkout
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Initialize tools
+        uses: ./.github/actions/init-tools
+        with:
+          cache-key: release
+
+      - name: Download raw binaries from the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        # language=bash
+        run: |
+          gh release download "$TAG" --dir dist-bin \
+            --pattern 'abwi_linux_*' \
+            --pattern 'abwi_darwin_*' \
+            --pattern 'abwi_windows_*'
+
+      - name: Copy README into pypi
+        uses: ./.github/actions/copy-readme
+        with:
+          dest: pypi/README.md
+          tag: ${{ github.ref_name }}
+
+      - name: Build platform wheels
+        working-directory: pypi
+        # language=bash
+        run: |
+          set -euo pipefail
+          build_one() {
+            local asset="$1" script="$2" tag="$3"
+            cp "../dist-bin/$asset" "./$script"
+            BINARY_PATH="$PWD/$script" SCRIPT_NAME="$script" WHEEL_TAG="$tag" \
+              uv build --wheel --python 3.12 --out-dir dist .
+            rm -f "./$script"
+          }
+          build_one abwi_linux_amd64       abwi     py3-none-manylinux_2_17_x86_64
+          build_one abwi_linux_arm64       abwi     py3-none-manylinux_2_17_aarch64
+          build_one abwi_darwin_arm64      abwi     py3-none-macosx_11_0_arm64
+          build_one abwi_darwin_amd64      abwi     py3-none-macosx_10_9_x86_64
+          build_one abwi_windows_amd64.exe abwi.exe py3-none-win_amd64
+          build_one abwi_windows_arm64.exe abwi.exe py3-none-win_arm64
+
+      - name: Validate wheels
+        run: uvx twine check pypi/dist/*.whl
+
+      # https://github.com/marketplace/actions/pypi-publish
+      - name: Publish to PyPI via Trusted Publishing
+        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b # v1.14.0
+        with:
+          packages-dir: pypi/dist
+          skip-existing: true
+
+  finalize-release:
+    needs: [goreleaser, npm-publish, pypi-publish]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      # https://github.com/marketplace/actions/create-github-app-token
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ secrets.RELEASE_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_APP_PRIVATE_KEY }}
+
+      # All artifacts are attached to the draft by now; publishing locks the
+      # release (immutable) with everything in place.
+      - name: Publish the draft release
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        # language=bash
+        run: gh release edit "$TAG" --draft=false
+
+  # On failure: if nothing was published and the release is still a draft, roll
+  # back cleanly by deleting the draft and the tag so the same version can be
+  # retried. If anything was already published (npm/PyPI versions are immutable),
+  # leave a tombstone instead and move on to a higher version; clean up partial
+  # npm packages with `mise run unpublish-npm <version>`.
+  cleanup-failed-release:
+    needs: [goreleaser, npm-publish, pypi-publish, finalize-release]
+    if: ${{ always() && contains(needs.*.result, 'failure') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      # https://github.com/marketplace/actions/create-github-app-token
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ secrets.RELEASE_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_APP_PRIVATE_KEY }}
+
+      - name: Roll back or tombstone the failed release
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        # language=bash
+        run: |
+          set -euo pipefail
+          version="${TAG#v}"
+
+          published=false
+          for pkg in @abwi/cli \
+            @abwi/cli-darwin-arm64 @abwi/cli-darwin-x64 \
+            @abwi/cli-linux-arm64 @abwi/cli-linux-x64 \
+            @abwi/cli-win32-arm64 @abwi/cli-win32-x64; do
+            enc="${pkg/\//%2f}"
+            if curl -fsS "https://registry.npmjs.org/$enc" 2>/dev/null \
+              | jq -e --arg v "$version" '.versions | has($v)' >/dev/null 2>&1; then
+              published=true
+              break
+            fi
+          done
+          if [ "$published" = false ] \
+            && curl -fsS -o /dev/null "https://pypi.org/pypi/abwi/$version/json" 2>/dev/null; then
+            published=true
+          fi
+
+          draft="$(gh release view "$TAG" --json isDraft --jq '.isDraft' 2>/dev/null || echo none)"
+
+          if [ "$published" = false ] && [ "$draft" != "false" ]; then
+            echo "Nothing published and no published release; deleting draft and tag"
+            gh release delete "$TAG" --yes 2>/dev/null || true
+            gh api -X DELETE "repos/$GH_REPO/git/refs/tags/$TAG" 2>/dev/null || true
+          else
+            echo "Something was published or the release is public; leaving a tombstone"
+            gh release delete "$TAG" --yes 2>/dev/null || true
+            gh release create "$TAG" \
+              --title "$TAG (unavailable)" \
+              --notes "The automated release failed before completion, so this version is unavailable. See the next release." \
+              --prerelease
+          fi

@@ -1,0 +1,24 @@
+{
+  "name": "@abwi/cli-darwin-x64",
+  "version": "0.1.0",
+  "description": "abwi binary for macOS AMD64",
+  "os": [
+    "darwin"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "files": [
+    "abwi"
+  ],
+  "license": "MIT",
+  "author": "lohn",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lohn/abwi.git",
+    "directory": "npm/@abwi/cli-darwin-x64"
+  },
+  "publishConfig": {
+    "provenance": true
+  }
+}

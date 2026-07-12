@@ -1,5 +1,10 @@
 # abwi
 
+[![CI](https://github.com/lohn/abwi/actions/workflows/ci.yaml/badge.svg)](https://github.com/lohn/abwi/actions/workflows/ci.yaml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/lohn/abwi)](https://goreportcard.com/report/github.com/lohn/abwi)
+[![npm](https://img.shields.io/npm/v/@abwi/cli.svg)](https://www.npmjs.com/package/@abwi/cli)
+[![PyPI](https://img.shields.io/pypi/v/abwi.svg)](https://pypi.org/project/abwi/)
+
 > **English** | [日本語](README.ja.md) | [한국어](README.ko.md)
 
 A CLI for reading and writing Azure Boards work items with first-class
@@ -26,6 +31,26 @@ Markdown support — what `az boards` makes hard, `abwi` makes the default.
 > the [`--format html` fallback](#the---format-html-fallback).
 
 ## Install
+
+### via npm
+
+```bash
+npm install -g @abwi/cli
+abwi --help
+```
+
+### via PyPI
+
+```bash
+pip install abwi
+abwi --help
+```
+
+### via GitHub Releases
+
+Download the binary for your platform from [Releases](https://github.com/lohn/abwi/releases).
+
+### via Go
 
 ```bash
 go install github.com/lohn/abwi/cmd/abwi@latest

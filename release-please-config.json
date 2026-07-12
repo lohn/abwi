@@ -1,0 +1,53 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "include-component-in-tag": false,
+  "separate-pull-requests": false,
+  "pull-request-header": "Release PR",
+  "pull-request-title-pattern": "chore: release v${version}",
+  "group-pull-request-title-pattern": "chore: release v${version}",
+  "packages": {
+    ".": {
+      "release-type": "go",
+      "extra-files": [
+        { "type": "toml", "path": "pypi/pyproject.toml", "jsonpath": "$.project.version" },
+        { "type": "json", "path": "npm/@abwi/cli/package.json", "jsonpath": "$.version" },
+        {
+          "type": "json",
+          "path": "npm/@abwi/cli/package.json",
+          "jsonpath": "$.optionalDependencies['@abwi/cli-darwin-arm64']"
+        },
+        {
+          "type": "json",
+          "path": "npm/@abwi/cli/package.json",
+          "jsonpath": "$.optionalDependencies['@abwi/cli-darwin-x64']"
+        },
+        {
+          "type": "json",
+          "path": "npm/@abwi/cli/package.json",
+          "jsonpath": "$.optionalDependencies['@abwi/cli-linux-arm64']"
+        },
+        {
+          "type": "json",
+          "path": "npm/@abwi/cli/package.json",
+          "jsonpath": "$.optionalDependencies['@abwi/cli-linux-x64']"
+        },
+        {
+          "type": "json",
+          "path": "npm/@abwi/cli/package.json",
+          "jsonpath": "$.optionalDependencies['@abwi/cli-win32-arm64']"
+        },
+        {
+          "type": "json",
+          "path": "npm/@abwi/cli/package.json",
+          "jsonpath": "$.optionalDependencies['@abwi/cli-win32-x64']"
+        },
+        { "type": "json", "path": "npm/@abwi/cli-darwin-arm64/package.json", "jsonpath": "$.version" },
+        { "type": "json", "path": "npm/@abwi/cli-darwin-x64/package.json", "jsonpath": "$.version" },
+        { "type": "json", "path": "npm/@abwi/cli-linux-arm64/package.json", "jsonpath": "$.version" },
+        { "type": "json", "path": "npm/@abwi/cli-linux-x64/package.json", "jsonpath": "$.version" },
+        { "type": "json", "path": "npm/@abwi/cli-win32-arm64/package.json", "jsonpath": "$.version" },
+        { "type": "json", "path": "npm/@abwi/cli-win32-x64/package.json", "jsonpath": "$.version" }
+      ]
+    }
+  }
+}

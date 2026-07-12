@@ -1,0 +1,37 @@
+{
+  "name": "@abwi/cli",
+  "version": "0.1.0",
+  "description": "Read and write Azure Boards work items with first-class Markdown support",
+  "main": "bin/abwi",
+  "bin": {
+    "abwi": "bin/abwi.js"
+  },
+  "optionalDependencies": {
+    "@abwi/cli-darwin-arm64": "0.1.0",
+    "@abwi/cli-darwin-x64": "0.1.0",
+    "@abwi/cli-linux-arm64": "0.1.0",
+    "@abwi/cli-linux-x64": "0.1.0",
+    "@abwi/cli-win32-arm64": "0.1.0",
+    "@abwi/cli-win32-x64": "0.1.0"
+  },
+  "files": [
+    "bin/abwi"
+  ],
+  "keywords": [
+    "azure",
+    "azure-devops",
+    "azure-boards",
+    "work-items",
+    "markdown",
+    "cli"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lohn/abwi.git"
+  },
+  "author": "lohn",
+  "publishConfig": {
+    "provenance": true
+  }
+}

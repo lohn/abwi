@@ -1,0 +1,24 @@
+{
+  "name": "@abwi/cli-win32-x64",
+  "version": "0.1.0",
+  "description": "abwi binary for Windows AMD64",
+  "os": [
+    "win32"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "files": [
+    "abwi.exe"
+  ],
+  "license": "MIT",
+  "author": "lohn",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lohn/abwi.git",
+    "directory": "npm/@abwi/cli-win32-x64"
+  },
+  "publishConfig": {
+    "provenance": true
+  }
+}

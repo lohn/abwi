@@ -1,0 +1,30 @@
+[build-system]
+requires = ["hatchling>=1.26"]
+build-backend = "hatchling.build"
+
+[project]
+name = "abwi"
+version = "0.1.0"
+description = "Read and write Azure Boards work items with first-class Markdown support"
+readme = "README.md"
+requires-python = ">=3"
+license = "MIT"
+keywords = [
+  "azure",
+  "azure-devops",
+  "azure-boards",
+  "work-items",
+  "markdown",
+  "cli",
+]
+authors = [{ name = "lohn" }]
+
+[project.urls]
+Homepage = "https://github.com/lohn/abwi"
+Repository = "https://github.com/lohn/abwi"
+
+[tool.hatch.build.targets.wheel]
+bypass-selection = true
+
+[tool.hatch.build.targets.wheel.hooks.custom]
+path = "hatch_build.py"

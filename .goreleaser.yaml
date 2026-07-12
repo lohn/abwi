@@ -1,0 +1,71 @@
+version: 2
+
+project_name: abwi
+
+before:
+  hooks:
+    - go mod tidy
+    - go test ./...
+
+builds:
+  - id: abwi
+    main: ./cmd/abwi
+    binary: abwi
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
+
+archives:
+  # Human-friendly archives (tar.gz / zip) for manual downloads from Releases.
+  - id: abwi
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    files:
+      - LICENSE
+      - README.md
+  # Raw per-platform binaries consumed by the npm / PyPI packaging jobs.
+  # Windows artifacts get a `.exe` extension appended automatically.
+  - id: raw
+    ids:
+      - abwi
+    formats: [binary]
+    name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
+
+checksum:
+  name_template: "checksums.txt"
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+# The release body is supplied from CHANGELOG.md via goreleaser's --release-notes
+# flag (see the workflow). The changelog pipe must stay enabled: when disabled,
+# goreleaser skips it entirely and --release-notes is ignored, leaving an empty
+# body. Generation is filtered to nothing here since --release-notes overrides it.
+changelog:
+  filters:
+    exclude: [".*"]
+
+# release-please manages versioning, the release PR and the tag; goreleaser
+# owns the GitHub Release. It is created as a draft so every artifact is
+# attached before the finalize step publishes it (GitHub releases are immutable
+# once published, tags are not).
+release:
+  draft: true
+  # Replace artifacts on re-runs so a retried, still-draft release does not
+  # collide with the one a previous attempt created.
+  mode: replace
