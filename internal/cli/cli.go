@@ -21,6 +21,7 @@ func Run(ctx context.Context, args []string) error {
 		Flags: globalFlags(),
 		Commands: []*cli.Command{
 			showCmd,
+			configCmd,
 		},
 	}
 	return root.Run(ctx, args)

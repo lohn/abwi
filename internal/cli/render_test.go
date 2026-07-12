@@ -5,6 +5,8 @@ import (
 	"testing"
 
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtracking"
+
+	"github.com/lohn/abwi/internal/config"
 )
 
 func strPtr(s string) *string { return &s }
@@ -32,6 +34,29 @@ func TestRenderWorkItem(t *testing.T) {
 		"## System.Description",
 		"# repro",
 		"parent https://dev.azure.com/o/_apis/wit/workItems/7",
+	} {
+		if !strings.Contains(got, want) {
+			t.Errorf("output missing %q:\n%s", want, got)
+		}
+	}
+}
+
+func TestRenderConfig(t *testing.T) {
+	cfg := &config.Config{
+		Org: "https://dev.azure.com/o", Project: "P", Format: "markdown", Auth: "entra",
+		Aliases:    map[string]string{"ac": "Microsoft.VSTS.Common.AcceptanceCriteria"},
+		Origins:    map[string]string{"org": "global", "project": "local", "format": "default", "auth": "default", "default-type": "default"},
+		GlobalPath: "/home/u/.config/abwi/config.toml",
+	}
+	got := renderConfig(cfg)
+	for _, want := range []string{
+		"# global: /home/u/.config/abwi/config.toml",
+		"# local:  (none)",
+		`org = "https://dev.azure.com/o"  # global`,
+		`project = "P"  # local`,
+		`format = "markdown"  # default`,
+		"[aliases]",
+		`ac = "Microsoft.VSTS.Common.AcceptanceCriteria"`,
 	} {
 		if !strings.Contains(got, want) {
 			t.Errorf("output missing %q:\n%s", want, got)

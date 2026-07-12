@@ -8,6 +8,7 @@ import (
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtracking"
 
 	"github.com/lohn/abwi/internal/ado"
+	"github.com/lohn/abwi/internal/config"
 )
 
 // displayOrder lists the summary fields shown before the large text sections.
@@ -56,6 +57,31 @@ func renderWorkItem(wi *workitemtracking.WorkItem, htmlFields map[string]bool) s
 				continue
 			}
 			fmt.Fprintf(&b, "  %s %s\n", ado.RelAlias(*r.Rel), *r.Url)
+		}
+	}
+	return b.String()
+}
+
+func renderConfig(cfg *config.Config) string {
+	var b strings.Builder
+	fmt.Fprintf(&b, "# global: %s\n", cfg.GlobalPath)
+	local := cfg.LocalPath
+	if local == "" {
+		local = "(none)"
+	}
+	fmt.Fprintf(&b, "# local:  %s\n", local)
+	for _, it := range cfg.Items() {
+		fmt.Fprintf(&b, "%s = %q  # %s\n", it.Key, it.Value, it.Origin)
+	}
+	if len(cfg.Aliases) > 0 {
+		keys := make([]string, 0, len(cfg.Aliases))
+		for k := range cfg.Aliases {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		b.WriteString("\n[aliases]\n")
+		for _, k := range keys {
+			fmt.Fprintf(&b, "%s = %q\n", k, cfg.Aliases[k])
 		}
 	}
 	return b.String()
