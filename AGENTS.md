@@ -72,6 +72,13 @@ prek run          # against staged files
   format — don't hand-format.
 - Keep the three READMEs (`README.md`, `README.ja.md`, `README.ko.md`) consistent
   when changing user-facing behavior.
+- Japanese/Korean documentation style: translations must read as natural,
+  idiomatic technical writing in each language — never a literal rendering of
+  the English text. In Japanese, do not hard-wrap in the middle of a sentence
+  (GitHub renders the soft break as a stray half-width space between CJK
+  characters); break lines only after 。/、 or adjacent to ASCII tokens such as
+  English words and inline code, or leave the paragraph unwrapped. Korean may
+  wrap at any inter-word space.
 - Unit tests live next to the code they cover (`internal/*/*_test.go`); no
   mocking frameworks. Add or update tests for behavior changes.
 - Azure DevOps API notes:

@@ -79,9 +79,16 @@ ac = "Microsoft.VSTS.Common.AcceptanceCriteria"
 repro = "Microsoft.VSTS.TCM.ReproSteps"
 ```
 
-사용할 수 있는 키는 `org`, `project`, `format`(`markdown`/`html`, 기본값
-`markdown`), `auth`(`entra`/`pat`, 기본값 `entra`, 글로벌 설정 전용),
-`default-type`, 그리고 `[aliases]` 테이블입니다.
+설정 가능한 키:
+
+| 키             | 설명                                                      | 기본값     |
+| -------------- | --------------------------------------------------------- | ---------- |
+| `org`          | 조직 URL(`https://dev.azure.com/<org>`)                   | —          |
+| `project`      | 프로젝트 이름                                             | —          |
+| `format`       | 큰 텍스트 포맷: `markdown` / `html`                       | `markdown` |
+| `auth`         | 인증 방식: `entra` / `pat`. **글로벌 설정 전용**          | `entra`    |
+| `default-type` | `create`에서 `--type`을 생략했을 때 사용할 work item 타입 | —          |
+| `[aliases]`    | `-f`용 축약 이름 테이블. 전체 참조 이름으로 확장됨        | —          |
 
 `abwi config`를 실행하면 최종 값과 각 값의 출처를 확인할 수 있습니다 — 아래
 [사용법](#사용법)을 참고하세요.

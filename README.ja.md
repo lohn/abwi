@@ -82,10 +82,16 @@ ac = "Microsoft.VSTS.Common.AcceptanceCriteria"
 repro = "Microsoft.VSTS.TCM.ReproSteps"
 ```
 
-使えるキーは `org`・`project`・
-`format`（`markdown`/`html`、既定は `markdown`）・
-`auth`（`entra`/`pat`、既定は `entra`。グローバル設定専用）・
-`default-type`・`[aliases]` テーブルです。
+設定可能なキー:
+
+| キー           | 内容                                                       | 既定値     |
+| -------------- | ---------------------------------------------------------- | ---------- |
+| `org`          | 組織 URL（`https://dev.azure.com/<org>`）                  | —          |
+| `project`      | プロジェクト名                                             | —          |
+| `format`       | 大きめテキストのフォーマット：`markdown` / `html`          | `markdown` |
+| `auth`         | 認証方式：`entra` / `pat`。**グローバル設定専用**          | `entra`    |
+| `default-type` | `create` で `--type` を省略したときに使う work item タイプ | —          |
+| `[aliases]`    | `-f` 用の短縮名テーブル。完全な参照名に展開される          | —          |
 
 解決後の値とその出どころは `abwi config` で確認できます。
 詳しくは下の[使い方](#使い方)を見てください。

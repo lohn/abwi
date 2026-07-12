@@ -83,9 +83,16 @@ ac = "Microsoft.VSTS.Common.AcceptanceCriteria"
 repro = "Microsoft.VSTS.TCM.ReproSteps"
 ```
 
-Available keys: `org`, `project`, `format` (`markdown`/`html`, default
-`markdown`), `auth` (`entra`/`pat`, default `entra`; global config only),
-`default-type`, and the `[aliases]` table.
+Available keys:
+
+| Key            | Description                                                         | Default    |
+| -------------- | ------------------------------------------------------------------- | ---------- |
+| `org`          | Organization URL (`https://dev.azure.com/<org>`)                    | —          |
+| `project`      | Project name                                                        | —          |
+| `format`       | Large text format: `markdown` / `html`                              | `markdown` |
+| `auth`         | Authentication: `entra` / `pat` — **global config only**            | `entra`    |
+| `default-type` | Work item type used when `create --type` is omitted                 | —          |
+| `[aliases]`    | Table of shorthand names for `-f`, expanded to full reference names | —          |
 
 Run `abwi config` to see the resolved values and where each one came from —
 see [Usage](#usage) below.
