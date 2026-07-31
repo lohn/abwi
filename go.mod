@@ -9,7 +9,7 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.14.0
 	github.com/BurntSushi/toml v1.6.0
 	github.com/microsoft/azure-devops-go-api/azuredevops/v7 v7.1.0
-	github.com/yuin/goldmark v1.8.2
+	github.com/yuin/goldmark v1.8.5
 )
 
 require (
